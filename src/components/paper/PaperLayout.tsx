@@ -1,0 +1,20 @@
+import { AppNavigation } from "@/components/navigation/AppNavigation";
+import { uiDateTime } from "@/lib/ui-presentation";
+import type { ReactNode } from "react";
+import { Bot, RefreshCw, ShieldCheck } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { usePaperTrading } from "./PaperTradingProvider";
+
+export const paperUtc = uiDateTime;
+export const paperNumber = (number: number | null, digits = 2) => number === null ? "—" : number === Infinity ? "∞" : number.toLocaleString("fr-FR", { minimumFractionDigits: digits, maximumFractionDigits: digits });
+export function PaperStatus() {
+  const { state, error, strategyError, refreshing, refresh } = usePaperTrading();
+  return <div className="space-y-3"><div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-4"><div><p className="text-sm font-semibold text-primary">Moteur paper · Twelve Data · H1 / H4</p><p className="mt-1 text-xs text-muted-foreground">{state.fetchedAt ? `Dernière récupération : ${paperUtc(state.fetchedAt)}` : "Aucune bougie réelle traitée pour l’instant."} · {state.running ? "Paper trading démarré" : "Entrées paper en pause"}</p></div><Button variant="outline" disabled={refreshing} onClick={() => void refresh()} className="h-10 rounded-xl border-primary/30 text-primary hover:bg-primary/10"><RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />{refreshing ? "Récupération…" : "Actualiser"}</Button></div>{strategyError && <p role="status" className="rounded-xl border border-border bg-card p-4 text-sm">{strategyError}</p>}{error && <p role="alert" className="rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm">{error}</p>}</div>;
+}
+export function PaperLayout({ title, description, children }: { title: string; description: string; children: ReactNode }) {
+  const nav = (mobile: boolean) => <AppNavigation mobile={mobile} />;
+  return <div className="min-h-screen bg-background text-foreground lg:flex"><aside className="sticky top-0 hidden h-screen w-56 shrink-0 flex-col border-r border-border bg-card/50 lg:flex"><div className="flex items-center gap-3 border-b border-border p-5"><Bot className="h-8 w-8 text-primary" /><div><p className="font-bold">TradeBot IA</p><p className="text-xs text-muted-foreground">Paper Trading · XAU/USD</p></div></div><nav className="flex-1 space-y-1 overflow-auto p-3" aria-label="Navigation principale">{nav(false)}</nav><p className="m-4 rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs text-muted-foreground">PAPER uniquement. MT5 M1 est une source historique indépendante pour le backtest Scalping.</p></aside><div className="min-w-0 flex-1"><header className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-card/50 px-4 py-4 sm:px-6"><p className="font-semibold">{title} / XAU/USD</p><span className="flex items-center gap-2 rounded-full border border-primary/30 px-3 py-1.5 text-xs text-primary"><ShieldCheck className="h-4 w-4" />Simulation exclusivement</span></header><main className="mx-auto max-w-[1600px] space-y-5 px-4 py-6 pb-28 sm:px-6 lg:pb-6"><div><p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary">Trend Master XAU · registre paper</p><h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{title}</h1><p className="mt-2 text-sm text-muted-foreground">{description}</p></div><PaperStatus />{children}</main><nav className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-card p-2 lg:hidden" aria-label="Navigation mobile">{nav(true)}</nav></div></div>;
+}
+export function PaperEmpty({ title, description }: { title: string; description: string }) {
+  return <section className="rounded-2xl border border-dashed border-primary/30 bg-card p-8 text-center"><Bot className="mx-auto mb-4 h-10 w-10 text-primary" /><h2 className="font-semibold">{title}</h2><p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">{description}</p></section>;
+}

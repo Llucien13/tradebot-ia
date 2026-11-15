@@ -1,0 +1,46 @@
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Index from "./pages/Index";
+import ScalpingM1 from "./pages/ScalpingM1";
+import ScalpingM5 from "./pages/ScalpingM5";
+import StrategyH1 from "./pages/StrategyH1";
+import Journal from "./pages/Journal";
+import Settings from "./pages/Settings";
+import FTMO20K from "./pages/FTMO20K";
+import NotFound from "./pages/NotFound";
+import { MarketDataProvider } from "@/components/market-data/MarketDataProvider";
+import { PaperTradingProvider } from "@/components/paper/PaperTradingProvider";
+import { SafetyBackup } from "@/components/backup/SafetyBackup";
+
+const queryClient = new QueryClient();
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <PaperTradingProvider>
+          <Routes>
+            <Route path="/" element={<MarketDataProvider><Index /></MarketDataProvider>} />
+            <Route path="/scalping" element={<MarketDataProvider><ScalpingM1 /></MarketDataProvider>} />
+            <Route path="/scalping-m1" element={<MarketDataProvider><ScalpingM1 /></MarketDataProvider>} />
+            <Route path="/scalping-m5" element={<MarketDataProvider><ScalpingM5 /></MarketDataProvider>} />
+            <Route path="/strategy-h1" element={<MarketDataProvider><StrategyH1 /></MarketDataProvider>} />
+            <Route path="/historique" element={<Journal />} />
+            <Route path="/settings" element={<MarketDataProvider><Settings /></MarketDataProvider>} />
+            <Route path="/ftmo-20k" element={<FTMO20K />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+          <SafetyBackup />
+        </PaperTradingProvider>
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
+
+export default App;

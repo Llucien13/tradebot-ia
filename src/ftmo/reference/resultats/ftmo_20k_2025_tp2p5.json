@@ -1,0 +1,44 @@
+{
+  "summary": {
+    "year": 2025,
+    "fx_mode": "constant_2025",
+    "tpR": 2.5,
+    "spread": 0.3,
+    "phases_reset": true,
+    "net": 3363.89,
+    "end_balance": 21185.51,
+    "trades": 164,
+    "signals": 164,
+    "refused_risk": 0,
+    "refused_margin": 0,
+    "max_dd_closed_pct": 5.29,
+    "max_dd_ohlc_pct": 6.1,
+    "max_planned_risk_pct": 0.5,
+    "min_ftmo_cushion_eur": 719.48,
+    "FTMO_equity_fail": false,
+    "phase1_status": "TARGET_CLOSED",
+    "phase1_end": "2025-04-16 07:45:00",
+    "phase2_status": "TARGET_CLOSED",
+    "phase2_end": "2025-06-13 04:20:00"
+  },
+  "phases": [
+    {
+      "phase": 1,
+      "status": "TARGET_CLOSED",
+      "start": "2025-01-03 02:15:00",
+      "end": "2025-04-16 07:45:00",
+      "trades": 113,
+      "days": 53,
+      "equity": 22178.38
+    },
+    {
+      "phase": 2,
+      "status": "TARGET_CLOSED",
+      "start": "2025-04-16 08:00:00",
+      "end": "2025-06-13 04:20:00",
+      "trades": 51,
+      "days": 30,
+      "equity": 21185.51
+    }
+  ]
+}

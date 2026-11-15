@@ -1,0 +1,18 @@
+import { ArrowUpRight, Clock3, Cloud, ShieldCheck } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { EquityChart, Metric, money, PositionCard, tone, date } from "@/components/monitor/MonitorCards";
+import MonitorJournal from "@/components/monitor/MonitorJournal";
+import { statusLabels, useMonitor } from "@/components/monitor/MonitorLayout";
+import TradingSeparationNotice from "@/components/monitor/TradingSeparationNotice";
+
+export default function Index() {
+  const { data, connected, fresh } = useMonitor();
+  const m = data?.metrics;
+  return <div className="space-y-6">
+    <section className="flex flex-wrap items-end justify-between gap-5 py-2"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">Votre essai, en un regard</p><h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Le suivi. Rien de superflu.</h1><p className="mt-3 max-w-xl text-sm leading-relaxed text-slate-400">Positions virtuelles, résultats enregistrés et santé du moteur. Une vue claire, sans intervention sur vos trades.</p></div><div className="flex flex-wrap items-center gap-2"><Button asChild variant="outline" className="min-h-11 rounded-xl border-slate-700 bg-transparent text-xs"><Link to="/cloud-paper"><Cloud size={15} className="mr-2" />PAPER Cloud</Link></Button><div className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-xs"><span className={`h-2 w-2 rounded-full ${!connected ? "bg-slate-500" : data?.status === "RUNNING" && fresh ? "bg-emerald-400" : data?.status === "SAFE_STOP" ? "bg-rose-400" : "bg-amber-300"}`} /><span>{!connected ? "État non confirmé" : data ? statusLabels[data.status] : "Lecture du registre…"}</span></div></div></section>
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"><Metric label={connected ? "Solde virtuel PAPER" : "Dernier solde virtuel connu"} value={money(m?.balance)} hint="Capital initial de référence : 20 000 €" /><Metric label="P&L réalisé · total clôturé" value={money(m?.realized)} color={tone(m?.realized)} hint={m ? `${m.count} trade(s) réellement clôturé(s)` : "En attente du registre"} /><Metric label="P&L réalisé · aujourd’hui" value={money(m?.periods.today)} color={tone(m?.periods.today)} hint="Clôtures du jour · Europe/Paris" /><Metric label={fresh ? "Exposition latente" : "Exposition latente indisponible"} value={fresh ? money(data?.floatingEUR) : "—"} color={tone(fresh ? data?.floatingEUR : null)} hint="Séparée du réalisé · hors frais d’entrée" /></div>
+    <TradingSeparationNotice />
+    <div className="grid min-w-0 gap-6 xl:grid-cols-[1.35fr_1fr]"><div className="min-w-0 space-y-6"><PositionCard /><EquityChart /></div><div className="min-w-0 space-y-6"><MonitorJournal compact /><section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><div className="flex items-center gap-2 text-sm font-semibold"><ShieldCheck size={17} className="text-cyan-300" />Un moteur, une source de vérité</div><p className="mt-3 text-sm leading-relaxed text-slate-400">GOLD M15 · objectif 2,5R · risque maximal 0,5 % · une seule position. Les protections et reprises restent celles de la V85.</p><p className="mt-4 flex items-start gap-2 text-xs leading-relaxed text-slate-400"><Clock3 size={14} className="mt-0.5 shrink-0" />Dernière observation : {date(data?.observedAt)} Europe/Paris. {connected ? "Lecture du bridge confirmée." : "Aucune fraîcheur supposée."}</p><Button asChild variant="outline" className="mt-5 min-h-11 w-full rounded-xl border-slate-700 bg-transparent text-sm"><Link to="/etat">Vérifier la santé du bot<ArrowUpRight size={15} className="ml-2" /></Link></Button></section></div></div>
+  </div>;
+}

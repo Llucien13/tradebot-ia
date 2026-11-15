@@ -1,0 +1,44 @@
+{
+  "summary": {
+    "year": 2026,
+    "fx_mode": "mt5_2026",
+    "tpR": 5.0,
+    "spread": 0.6,
+    "phases_reset": true,
+    "net": 2004.9,
+    "end_balance": 19841.71,
+    "trades": 244,
+    "signals": 244,
+    "refused_risk": 0,
+    "refused_margin": 0,
+    "max_dd_closed_pct": 6.57,
+    "max_dd_ohlc_pct": 7.83,
+    "max_planned_risk_pct": 0.5,
+    "min_ftmo_cushion_eur": 696.39,
+    "FTMO_equity_fail": false,
+    "phase1_status": "TARGET_CLOSED",
+    "phase1_end": "2026-01-29 01:35:00",
+    "phase2_status": "NOT_REACHED",
+    "phase2_end": "2026-10-09 23:45:00"
+  },
+  "phases": [
+    {
+      "phase": 1,
+      "status": "TARGET_CLOSED",
+      "start": "2026-01-05 08:15:00",
+      "end": "2026-01-29 01:35:00",
+      "trades": 27,
+      "days": 16,
+      "equity": 22163.19
+    },
+    {
+      "phase": 2,
+      "status": "NOT_REACHED",
+      "start": "2026-01-29 01:45:00",
+      "end": "2026-10-09 23:45:00",
+      "trades": 217,
+      "days": 117,
+      "equity": 19841.71
+    }
+  ]
+}

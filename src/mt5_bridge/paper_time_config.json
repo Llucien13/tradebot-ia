@@ -1,0 +1,41 @@
+{
+  "encoding": "SERVER_WALL",
+  "serverPrefix": "FTMO-Demo",
+  "symbols": [
+    "XAUUSD",
+    "EURUSD"
+  ],
+  "confirmation": "Historique GMT+2/GMT+3 documente par les mises a jour FTMO 2024-2026.",
+  "sources": [
+    "https://ftmo.com/fr/trading-updates/",
+    "https://ftmo.com/fr/faq/quelles-sont-les-specifications-du-compte/"
+  ],
+  "periods": [
+    {
+      "fromUTC": "2024-11-03T06:00:00+00:00",
+      "untilUTC": "2025-03-09T07:00:00+00:00",
+      "offsetSeconds": 7200
+    },
+    {
+      "fromUTC": "2025-03-09T07:00:00+00:00",
+      "untilUTC": "2025-11-02T06:00:00+00:00",
+      "offsetSeconds": 10800
+    },
+    {
+      "fromUTC": "2025-11-02T06:00:00+00:00",
+      "untilUTC": "2026-03-08T07:00:00+00:00",
+      "offsetSeconds": 7200
+    },
+    {
+      "fromUTC": "2026-03-08T07:00:00+00:00",
+      "untilUTC": "2026-11-01T06:00:00+00:00",
+      "offsetSeconds": 10800
+    },
+    {
+      "fromUTC": "2026-11-01T06:00:00+00:00",
+      "untilUTC": "2026-12-31T22:00:00+00:00",
+      "offsetSeconds": 7200
+    }
+  ],
+  "validityNote": "Periodes historiques bornees, aucun decalage deduit automatiquement."
+}

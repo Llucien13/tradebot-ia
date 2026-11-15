@@ -1,0 +1,18 @@
+# GOLD + SMC + Fibonacci — préparation SHADOW
+
+## Vérification historique
+
+Les sources retrouvées dans `src/ftmo/reference` décrivent un moteur GOLD M15 différent : clôture de la bougie M15 au-delà des extrêmes précédents sur 8 bougies, bougie de déclenchement dans le sens du trade, moments H4 et D1 dans le même sens, EMA50/200 alignées et momentum M30 concordant. Le stop est à 2,5 ATR, le TP à 2,5R, le risque planifié maximal à 0,5 %, une position à la fois et l’expiration historique à 32 bougies. Le rapport 2025 associé indique +3 363,89 € sur deux phases successives remises chacune à 20 000 €, avec un taux USD/EUR fixe hypothétique de 1,15.
+
+Ni le code, ni les archives recherchées ne documentent la combinaison SMC + Fibonacci à l’origine du résultat annoncé de +10 527,99 €. Les règles d’entrée SMC, FVG, Order Blocks, retest, expiration 48 bougies et le périmètre exact du résultat ne sont donc pas vérifiables. Ils ne sont pas reconstruits ni assimilés au moteur GOLD archivé.
+
+## Périmètre livré
+
+- `gold-paper-shadow-readiness.ts` fournit en complément un validateur/sizer isolé, limité explicitement à `XAUUSD`. Il compare les signaux GOLD et GOLD + SMC sur le même jeu de données et instant, vérifie la fraîcheur des quotes, la devise et les spécifications déclarées, les frais, le risque et la marge fournis, puis sérialise des événements SHADOW. Il n'est connecté à aucune source de données, application, passerelle MT5 ou moteur PAPER et ne transmet ni ne persiste lui-même des ordres/événements.
+- Le pont MT5 a `SYMBOL = "XAUUSD"` par défaut, le service FTMO cible `XAUUSD` sans repli, et le modèle PAPER de suivi impose `XAUUSD`. Des interfaces de compatibilité acceptent encore `XAUUSD-ECN`, tandis que des modules distincts de scalping/calendrier M5 l’exigent explicitement. Ils restent inchangés et ne doivent pas être considérés comme validés pour le compte GOLD XAUUSD. Le nouveau module SHADOW refuse `XAUUSD-ECN` et exige que le symbole de la spécification corresponde à `XAUUSD`.
+- `gold-smc-shadow.ts` expose des observations sur les bougies M15 clôturées : pivots confirmés (même confirmation 3 à gauche / 2 à droite que le Fibonacci existant), HH/HL/LH/LL, biais structurel descriptif, cassures de clôture BOS/MSS, balayages et retests ultérieurs.
+- Les observations structurelles sont des conventions descriptives, pas les règles historiques manquantes et jamais un signal de trading. FVG et Order Blocks restent explicitement non évalués.
+- Le module appelle le Fibonacci SHADOW existant sans le modifier ; il conserve sa zone 50–61,8 %, ses confirmations, son SL 2,5 ATR14, TP 2,5R, risque déclaré 0,5 % et expiration 48 bougies. Le profil de comparaison note aussi le capital de référence 20 000 € et la limite cible d’une position. Aucun lot n’est calculé, aucune position n’est simulée ni ouverte : cette limite devra être effectivement appliquée par une future orchestration PAPER.
+- `gold-strategy-shadow-comparison.ts` compare les données fournies sans persistance, ordre, appel au moteur PAPER ni branchement LIVE. La sélection des candidats respecte GOLD > SMC > Fibonacci ; tout signal GOLD/SMC proposé doit provenir d’un fournisseur vérifié. L’ancien signal doit être fourni par un adaptateur vérifié ; aucun fournisseur historique SMC/GOLD compatible TypeScript n’a été trouvé.
+
+La stratégie combinée ne peut pas être déclarée finalisée ni proposée à une activation PAPER avant récupération et validation des règles/source historiques, définition vérifiable des FVG/Order Blocks et retests, fourniture d’un adaptateur pour l’ancienne stratégie et tests de comparaison. Aucun backtest historique n’a été relancé.
