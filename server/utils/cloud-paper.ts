@@ -101,7 +101,7 @@ export async function requireCloudPaperUser(event: Parameters<typeof getHeader>[
   return { id: profile.id, settings };
 }
 
-async function serviceRequest<T>(settings: CloudConfig, path: string, init?: RequestInit): Promise<T> {
+export async function serviceRequest<T>(settings: CloudConfig, path: string, init?: RequestInit): Promise<T> {
   let response: Response;
   try {
     response = await fetch(`${settings.url}/rest/v1/${path}`, {

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { accountInputSchema, paperCapitalSchema, paperStateSchema } from "@/lib/paper/model";
 import { strategySchema } from "@/lib/strategies";
+import { cloudMonitorJournalSchema, cloudMonitorSnapshotSchema } from "@/lib/cloud-monitor-model";
 
 const authSchema = z.object({
   access_token: z.string().min(20),
@@ -212,4 +213,23 @@ export async function readCloudPaperJournal(session: CloudPaperSession) {
   }).safeParse(response);
   if (!parsed.success) throw new Error("Journal Cloud PAPER invalide.");
   return parsed.data.events;
+}
+
+export async function readCloudMonitorState(session: CloudPaperSession) {
+  const response = await cloudRequest<unknown>("/api/paper-monitor/state", session);
+  const parsed = z.object({
+    configured: z.boolean(),
+    snapshot: cloudMonitorSnapshotSchema.nullable(),
+    syncedAt: z.string().datetime({ offset: true }).nullable(),
+  }).safeParse(response);
+  if (!parsed.success) throw new Error("État du monitoring PC Cloud invalide.");
+  return parsed.data;
+}
+
+export async function readCloudMonitorJournal(session: CloudPaperSession, offset = 0, limit = 50) {
+  const query = new URLSearchParams({ offset: String(offset), limit: String(limit) });
+  const response = await cloudRequest<unknown>(`/api/paper-monitor/journal?${query}`, session);
+  const parsed = cloudMonitorJournalSchema.safeParse(response);
+  if (!parsed.success) throw new Error("Journal du monitoring PC Cloud invalide.");
+  return parsed.data;
 }

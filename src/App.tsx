@@ -17,6 +17,7 @@ const MonitorStatistics = lazy(() => import("./pages/MonitorStatistics"));
 const MonitorHealth = lazy(() => import("./pages/MonitorHealth"));
 const ConnectionMT5 = lazy(() => import("./pages/ConnectionMT5"));
 const CloudPaperPage = lazy(() => import("./pages/CloudPaperPage"));
+const CloudMonitorPage = lazy(() => import("./pages/CloudMonitorPage"));
 const Journal = lazy(() => import("./pages/Journal"));
 const Settings = lazy(() => import("./pages/Settings"));
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
               <Route path="/etat" element={<MonitorHealth />} />
             </Route>
             <Route path="/cloud-paper" element={<CloudPaperPage />} />
+            <Route path="/cloud-monitor" element={<CloudMonitorPage />} />
             <Route element={<FTMO20K />}>
               <Route path="/v85" element={<WorkspaceV85 />} />
               <Route path="/mt5" element={<ConnectionMT5 />} />
