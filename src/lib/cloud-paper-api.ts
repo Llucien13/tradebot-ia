@@ -3,12 +3,15 @@ import { accountInputSchema, paperCapitalSchema, paperStateSchema } from "@/lib/
 import { strategySchema } from "@/lib/strategies";
 import { cloudMonitorJournalSchema, cloudMonitorSnapshotSchema } from "@/lib/cloud-monitor-model";
 
+const tokenSchema = z.string().min(20).max(8192).refine(value => value.trim() === value && !/\s/.test(value));
+const expiryValueSchema = z.union([z.number().finite(), z.string().min(1).max(64)]).nullable().optional();
 const authSchema = z.object({
-  access_token: z.string().min(20),
-  refresh_token: z.string().min(20),
-  expires_at: z.number().optional(),
-  expires_in: z.number().positive().optional(),
+  access_token: tokenSchema,
+  refresh_token: tokenSchema,
+  expires_at: expiryValueSchema,
+  expires_in: expiryValueSchema,
   token_type: z.string().optional(),
+  user: z.object({ id: z.string().uuid() }).passthrough(),
 });
 const sessionSchema = z.object({
   accessToken: z.string().min(20),
@@ -36,6 +39,37 @@ export interface CloudPaperSnapshot {
   lastCycleAt: string | null;
   state: z.infer<typeof paperStateSchema> | null;
   strategy: z.infer<typeof strategySchema> | null;
+}
+
+function expiryNumber(value: number | string | null | undefined, kind: "absolute" | "relative"): number | null {
+  if (value == null) return null;
+  const parsed = typeof value === "number"
+    ? value
+    : /^\d+(?:\.\d+)?$/.test(value)
+      ? Number(value)
+      : kind === "absolute" ? Date.parse(value) / 1000 : NaN;
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
+export function parseSupabaseAuthResponse(value: unknown, now = Date.now()): CloudPaperSession | null {
+  const parsed = authSchema.safeParse(value);
+  if (!parsed.success) return null;
+
+  const absoluteExpiry = expiryNumber(parsed.data.expires_at, "absolute");
+  const relativeExpiry = expiryNumber(parsed.data.expires_in, "relative");
+  if (parsed.data.expires_at != null && absoluteExpiry === null) return null;
+  if (parsed.data.expires_in != null && relativeExpiry === null) return null;
+
+  const expiresAt = absoluteExpiry !== null
+    ? absoluteExpiry > 1e12 ? absoluteExpiry : absoluteExpiry * 1000
+    : relativeExpiry !== null ? now + relativeExpiry * 1000 : null;
+  if (expiresAt !== null && (!Number.isFinite(expiresAt) || expiresAt <= now)) return null;
+
+  return {
+    accessToken: parsed.data.access_token,
+    refreshToken: parsed.data.refresh_token,
+    expiresAt,
+  };
 }
 
 async function config() {
@@ -106,15 +140,8 @@ export async function signInCloudPaper(email: string, password: string): Promise
   if (!response.ok) throw new Error(response.status === 400 || response.status === 401
     ? "Adresse e-mail ou mot de passe invalide."
     : "Connexion Cloud PAPER indisponible.");
-  const parsed = authSchema.safeParse(await response.json());
-  if (!parsed.success) throw new Error("Réponse d’authentification Cloud invalide.");
-  const session: CloudPaperSession = {
-    accessToken: parsed.data.access_token,
-    refreshToken: parsed.data.refresh_token,
-    expiresAt: parsed.data.expires_at ? parsed.data.expires_at * 1000
-      : parsed.data.expires_in ? Date.now() + parsed.data.expires_in * 1000
-        : null,
-  };
+  const session = parseSupabaseAuthResponse(await response.json());
+  if (!session) throw new Error("Réponse d’authentification Cloud invalide.");
   sessionStorage.setItem(storageKey, JSON.stringify(session));
   return session;
 }
@@ -160,15 +187,8 @@ async function cloudRequest<T>(path: string, session: CloudPaperSession, method 
       clearCloudPaperSession();
       throw new Error("Session Cloud expirée; reconnectez-vous.");
     }
-    const parsed = authSchema.safeParse(await response.json());
-    if (!parsed.success) throw new Error("Réponse de renouvellement Cloud invalide.");
-    const refreshed = {
-      accessToken: parsed.data.access_token,
-      refreshToken: parsed.data.refresh_token,
-      expiresAt: parsed.data.expires_at ? parsed.data.expires_at * 1000
-        : parsed.data.expires_in ? Date.now() + parsed.data.expires_in * 1000
-          : null,
-    };
+    const refreshed = parseSupabaseAuthResponse(await response.json());
+    if (!refreshed) throw new Error("Réponse de renouvellement Cloud invalide.");
     sessionStorage.setItem(storageKey, JSON.stringify(refreshed));
     return refreshed;
   }
