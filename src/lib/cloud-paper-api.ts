@@ -21,6 +21,7 @@ const setupSchema = z.object({
 });
 const storageKey = "tradebot.cloud-paper.session.v1";
 let refreshPending: Promise<CloudPaperSession> | null = null;
+let publicConfigPending: Promise<{ url: string; anonKey: string }> | null = null;
 
 export interface CloudPaperSession {
   accessToken: string;
@@ -37,13 +38,36 @@ export interface CloudPaperSnapshot {
   strategy: z.infer<typeof strategySchema> | null;
 }
 
-function config() {
-  const url = import.meta.env.VITE_SUPABASE_URL?.trim().replace(/\/+$/, "") ?? "";
-  const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim() ?? "";
-  if (!/^https:\/\/[^/]+$/.test(url) || !anonKey) {
-    throw new Error("Accès Cloud indisponible : VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY doivent être configurés au build.");
+async function config() {
+  if (!publicConfigPending) {
+    publicConfigPending = fetch("/api/cloud-paper/public-config", {
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(10000),
+    }).then(async response => {
+      if (!response.ok) throw new Error("Configuration publique Supabase indisponible côté serveur.");
+      const parsed = z.object({
+        url: z.string().url().refine(value => {
+          try {
+            const url = new URL(value);
+            return url.protocol === "https:" && !url.username && !url.password && url.pathname === "/" && !url.search && !url.hash;
+          } catch {
+            return false;
+          }
+        }),
+        anonKey: z.string().min(20).max(4096).refine(value =>
+          /^sb_publishable_[A-Za-z0-9_-]{20,}$/.test(value)
+          || value.split(".").length === 3 && value.split(".").every(part => /^[A-Za-z0-9_-]+$/.test(part)),
+        ),
+      }).safeParse(await response.json());
+      if (!parsed.success) throw new Error("Configuration publique Supabase absente ou invalide.");
+      return parsed.data;
+    }).catch(error => {
+      publicConfigPending = null;
+      throw error;
+    });
   }
-  return { url, anonKey };
+  return publicConfigPending;
 }
 
 export function readCloudPaperSession(): CloudPaperSession | null {
@@ -72,7 +96,7 @@ export function clearCloudPaperSession() {
 }
 
 export async function signInCloudPaper(email: string, password: string): Promise<CloudPaperSession> {
-  const { url, anonKey } = config();
+  const { url, anonKey } = await config();
   const response = await fetch(`${url}/auth/v1/token?grant_type=password`, {
     method: "POST",
     headers: { apikey: anonKey, "Content-Type": "application/json", Accept: "application/json" },
@@ -125,7 +149,7 @@ async function cloudRequest<T>(path: string, session: CloudPaperSession, method 
   }
 
   async function performSessionRefresh(session: CloudPaperSession): Promise<CloudPaperSession> {
-    const { url, anonKey } = config();
+    const { url, anonKey } = await config();
     const response = await fetch(`${url}/auth/v1/token?grant_type=refresh_token`, {
       method: "POST",
       headers: { apikey: anonKey, "Content-Type": "application/json", Accept: "application/json" },
