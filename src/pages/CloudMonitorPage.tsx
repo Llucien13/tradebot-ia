@@ -58,8 +58,13 @@ export default function CloudMonitorPage() {
   }, [offset]);
 
   useEffect(() => {
-    const stored = readCloudPaperSession();
-    if (stored) setSession(stored);
+    let active = true;
+    void readCloudPaperSession().then(stored => {
+      if (active && stored) setSession(stored);
+    }).catch(reason => {
+      if (active) setError(reason instanceof Error ? reason.message : "Vérification de la session Cloud impossible.");
+    });
+    return () => { active = false; };
   }, []);
 
   useEffect(() => {
@@ -83,11 +88,19 @@ export default function CloudMonitorPage() {
     }
   }
 
-  function signOut() {
-    clearCloudPaperSession();
-    setSession(null);
-    setSnapshot(null);
-    setJournal(null);
+  async function signOut() {
+    setBusy(true);
+    setError("");
+    try {
+      await clearCloudPaperSession();
+      setSession(null);
+      setSnapshot(null);
+      setJournal(null);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Déconnexion Cloud impossible.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   const syncedAt = snapshot?.syncedAt ? Date.parse(snapshot.syncedAt) : NaN;

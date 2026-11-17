@@ -62,8 +62,13 @@ export default function CloudPaperPage() {
   }, []);
 
   useEffect(() => {
-    const stored = readCloudPaperSession();
-    if (stored) setSession(stored);
+    let active = true;
+    void readCloudPaperSession().then(stored => {
+      if (active && stored) setSession(stored);
+    }).catch(reason => {
+      if (active) setError(reason instanceof Error ? reason.message : "Vérification de la session Cloud impossible.");
+    });
+    return () => { active = false; };
   }, []);
 
   useEffect(() => {
@@ -140,11 +145,19 @@ export default function CloudPaperPage() {
     }
   }
 
-  function signOut() {
-    clearCloudPaperSession();
-    setSession(null);
-    setSnapshot(null);
-    setJournal([]);
+  async function signOut() {
+    setBusy(true);
+    setError("");
+    try {
+      await clearCloudPaperSession();
+      setSession(null);
+      setSnapshot(null);
+      setJournal([]);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Déconnexion Cloud impossible.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   return <main className="min-h-screen bg-slate-950 px-4 py-6 text-slate-100 sm:px-8">
