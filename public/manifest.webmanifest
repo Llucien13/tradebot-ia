@@ -2,7 +2,7 @@
   "name": "TradeBot IA PAPER Cloud",
   "short_name": "TradeBot PAPER",
   "description": "Supervision responsive du compte PAPER Cloud.",
-  "start_url": "/cloud-paper",
+  "start_url": "/cloud-monitor",
   "scope": "/",
   "display": "standalone",
   "background_color": "#020617",
